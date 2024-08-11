@@ -112,11 +112,6 @@ interface IOrderResult {
 - Тип оплаты заказа:
 
 ```
-type TPayMethod = 'cash' | 'card';
-```
-- Тип категории товара:
-
-```
 type TCategoryType = 'другое' | 'софт-скил' | 'дополнительное' | 'кнопка'| 'хард-скил';
 ```
 - Данные карточки товара, выводимые на главной странице сайта :
@@ -134,6 +129,12 @@ type TProductBasket = Pick<IProduct, 'id' | 'price' | 'title'>;
 ```
 type TOrderFormData = Pick<IOrder, 'payment' | 'address' | 'email' | 'phone'>;
 ```
+- Ошибки в форме заказа:
+
+```
+type TFormErrors = Partial<Record<keyof IOrder, string>>;
+```
+
 
 ## Архитектура приложения
 
@@ -169,6 +170,15 @@ type TOrderFormData = Pick<IOrder, 'payment' | 'address' | 'email' | 'phone'>;
 
 `container: HTMLElement` - принимает элемент контейнера, в который будет помещен компонент.
 
+Методы класса:
+
+- `toggleClass(element: HTMLElement, className: string, force?: boolean)` - переключить класс;
+- `setText(element: HTMLElement, value: unknown)` - установить текстовое содержимое;
+- `setDisabled(element: HTMLElement, state: boolean)` - сменить статус блокировки;
+- `setHidden(element: HTMLElement)` - скрыть;
+- `setVisible(element: HTMLElement)` - показать;
+- `setImage(element: HTMLImageElement, src: string, alt?: string)` - установить изображение с алтернативным текстом;
+
 Основной метод `render` заполняет свойства элемента данными и возвращает его в формате HTMLElement.
 
 ### 4. Абстрактный класс Model
@@ -194,17 +204,22 @@ type TOrderFormData = Pick<IOrder, 'payment' | 'address' | 'email' | 'phone'>;
 - `catalog` - массив продуктов IProduct, каталог;
 - `basket` - массив продуктов IProduct, корзина;
 - `preview` - id карточки, выбранной для просмотра в модальном окне, является строкой или null;
-- `order` - представляет информацию о заказе, включая общую стоимость заказа (total), список товаров (items), номер телефона (phone), электроннаую почту (email), способ оплаты (payment) и адрес доставки (address).
+- `order` - представляет информацию о заказе, включая общую стоимость заказа (total), список товаров (items), номер телефона (phone), электроннаую почту (email), способ оплаты (payment) и адрес доставки (address);
+- `formErrors: FormErrors = {}` - объект ошибок формы оформления заказа.
 
-Методы:
+Методы класса:
 
-- setCatalog - выводит каталог на страницу;
-- addProduct(product: IProduct): void; - добавляет продукт в корзину;
-- removeProduct(product: IProduct): void; - удаляет продукт из корзины;
-- clearBasket - очищает корзину;
-- getCountProductInBasket - считает количество товаров в корзине;
-- resetSelected - удаляет информацию о том, что товар в корзине. Товар снова можно купить;
-- getTotal - возвращает общую сумму заказов.
+- setCatalog(items: IProduct[]) - выводит каталог на страницу;
+- setPreview(item: Product): void - устанавливает товар для предпросмотра
+- addProduct(item: Product): void - добавляет продукт в корзину;
+- deleteProduct(item: Product): void - удаляет продукт из корзины;
+- clearBasket() - очищает корзину;
+- setOrderField(field: keyof IOrderForm, value: string) - устанавливает значение в поле заказа и проверяет его;
+- validateOrder() - проверяет значение полей в форме доставки;
+- setContactField(field: keyof IContactForm, value: string) - устанавливает значение в поле контактов;
+validateContacts() - проверяет значение полей в форме контактов;
+- getTotal(): number - возвращает общую сумму заказов;
+- resetOrder() - очищает данные заказа.
 
 
 ## Классы представления
@@ -218,7 +233,7 @@ type TOrderFormData = Pick<IOrder, 'payment' | 'address' | 'email' | 'phone'>;
 
 Конструктор класса:
 
-constructor(selector: string, events: IEvents) - Конструктор принимает темплейт, по которому в разметке страницы будет идентифицировано модальное окно и экземпляр класса EventEmitter для возможности инициации событий.
+constructor(container: HTMLElement, events: IEvents) - Конструктор принимает темплейт, по которому в разметке страницы будет идентифицировано модальное окно и экземпляр класса EventEmitter для возможности инициации событий.
 
 Поля класса:
 
@@ -247,13 +262,15 @@ constructor(selector: string, events: IEvents) - Конструктор прин
 Методы класса:
 
 - `set/get id` - управляет индификатором карточки;
-- `set description` - устанавливает описание товара;
-- `set image` - устанавливает изображение товара;
-- `set/get category` - управляет категорией и ее цветом;
 - `set/get title` - управляет названием товара;
-- `set/get price` - управляет ценой товара;
-- `set/get index` - управляет индексом товара;
-- `set buttonName` - устанавливает текст кнопки.
+- `set image` - устанавливает изображение товара;
+- `set description` - устанавливает описание товара;
+- `set/get category` - управляет категорией и ее цветом;
+- `set price` - управляет ценой товара;
+- `set index` - управляет индексом товара;
+- `set buttonName` - устанавливает текст кнопки;
+- `disablePriceButton ()` - проверяет цену и делает кнопку покупки неактивной если цена не указана;
+- ` set buttonTitle` - управляет текстом кнопки.
 
 
 ### 3. Класс Form
@@ -273,8 +290,9 @@ constructor(selector: string, events: IEvents) - Конструктор прин
 Методы класса:
 
 - `onInputChange` - метод вызывается при изменении значений в полях формы;
-- `checkValidation(data: Record<keyof TOrderFormData, string>): boolean;` - проверяет объект с данными пользователя на валидность;
-- `render` - рендер, обновляет состояние валидности формы.
+- `set valid` - управляет кнопкой отправки формы в зависимости от валидации;
+- `render` - рендер, обновляет состояние валидности формы;
+- `set errors` - устанавливает ошибки валидации формы.
 
 
 ### 4. Классы OrderForm и ContactForm
@@ -289,18 +307,28 @@ constructor(selector: string, events: IEvents) - Конструктор прин
 
 Методы класса OrderForm:
 
-`select payMethod` - выбирает способ оплаты;
+`select payment` - принимает имя кнопки и устанавливает класс активности;
 
-`set address` - адрес доставки;
+`set address` - устанавливает значение поля адреса в форме;
 
 Методы класса ContactForm:
 
-`set phone` - контакты пользователя;
+`set phone` - устанавливает значение номера телефона;
 
-`set email` - email пользователя.
+`set email` - устанавливает значение электронной почты.
+
+### 5. Класс Success
+
+Наследуется от класса Component. Отображает модальное окно об успешном заказе.
+
+Конструктор класса:
+
+`container: HTMLElement, actions: ISuccessActions`
+
+Метод `total` - устанавливает значение общей суммы заказа
 
 
-### 5. Класс Page
+### 6. Класс Page
 
 Наследуется от класса Component. Управляет элементами страницы: счетчик товаров в корзине, каталог товаров, блокировка прокрутки страницы при открытии модального окна.
 
@@ -318,7 +346,7 @@ constructor(selector: string, events: IEvents) - Конструктор прин
 - `set locked` - управляет блокировкой прокрутки страницы при открытии модального окна.
 
 
-### 6. Класс Basket
+### 7. Класс Basket
 
 Класс наследуется от базового класса Component. Отвечает за работу с корзиной, отражает информацию по товарам в корзине, стоимость каждой единицы товара, дает возможность удалить товар из корзины, считает и показывает общую сумму заказа.
 
@@ -326,7 +354,7 @@ constructor(selector: string, events: IEvents) - Конструктор прин
 
 `container: HTMLElement` — контейнер для вставки данных;
 
-`events: EventEmitter` — объект событий.
+`events: IEvents` — объект событий.
 
 
 Методы класса:
@@ -334,6 +362,16 @@ constructor(selector: string, events: IEvents) - Конструктор прин
 - `set items` - устанавливает элементы корзины;
 - `set total` - устанавливаем общую стоимость товаров в корзине;
 - `set selected` - устанавливает состояние кнопки  button в зависимости от наличия товаров в корзине.
+
+### 8. Класс LarekApi
+
+Наследуется от класса Api. Взаимодействует с сервером.
+
+Методы класса:
+
+- `getProductList` - получает список продуктов и их данные;
+- `getProductItem` - получает данные продукта;
+- `getOrder` - отправляет заказ и получает ответ.
 
 
 ## Слой коммуникации

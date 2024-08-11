@@ -19,7 +19,7 @@ export interface IContactForm {
 }
 
 export interface IOrderForm {
-    payment: TPayMethod; // Способ оплаты
+    payment: string; // Способ оплаты
     address: string; // Адрес доставки
 }
 
@@ -27,7 +27,6 @@ export interface IOrderForm {
 export interface IOrder extends IOrderForm, IContactForm {
 	total: number; // Общая сумма заказа
 	items: string[]; // Массив товаров, включенных в заказ
-    checkValidation(data: Record<keyof TOrderFormData, string>): boolean;
 }
 
 // Интерфейс, описывающий глобальное состояние приложения
@@ -48,15 +47,14 @@ export interface IOrderResult {
     total: number;
 }
 
-export type TPayMethod = 'cash' | 'card';
 
-export type TCategoryType = 'другое' | 'софт-скил' | 'дополнительное' | 'кнопка'| 'хард-скил';
-
-export type TProductMainPage = Pick<IProduct, 'category' | 'id' | 'image' | 'price' | 'title'>;
+export type TCategoryType = | 'другое' | 'софт-скил' | 'дополнительное' | 'кнопка'| 'хард-скил';
 
 export type TProductBasket = Pick<IProduct, 'id' | 'price' | 'title'>;
 
 export type TOrderFormData = Pick<IOrder, 'payment' | 'address' | 'email' | 'phone'>
+
+export type TFormErrors = Partial<Record<keyof IOrder, string>>;
 
 
 
