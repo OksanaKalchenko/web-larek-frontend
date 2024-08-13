@@ -47,7 +47,6 @@ export interface IOrderResult {
     total: number;
 }
 
-
 export type TCategoryType = | 'другое' | 'софт-скил' | 'дополнительное' | 'кнопка'| 'хард-скил';
 
 export type TProductBasket = Pick<IProduct, 'id' | 'price' | 'title'>;

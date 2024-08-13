@@ -1,22 +1,13 @@
 import { Model } from "./base/Model";
-import { IAppState, IProduct, TCategoryType, IOrder, TFormErrors, IOrderForm, IContactForm } from "../types";
-
-export class Product extends Model<IProduct> {
-	id: string; // Уникальный идентификатор товара
-	description: string; // Описание товара
-	image: string; // URL изображения товара
-	title: string; // Наименование товара
-	category: TCategoryType; // Категория товара
-	price: number | null; //Цена товара
-}
+import { IAppState, IProduct, IOrder, TFormErrors, IOrderForm, IContactForm } from "../types";
 
 export type CatalogChangeEvent = {
-    catalog: Product[];
+    catalog: IProduct[];
   }
 
 export class AppState extends Model<IAppState> {
-    catalog: Product[];  // Массив продуктов в каталоге
-    basket: Product[] = [];   // Массив продуктов в корзине
+    catalog: IProduct[];  // Массив продуктов в каталоге
+    basket: IProduct[] = [];   // Массив продуктов в корзине
     preview: string | null;
     order: IOrder = {
 		payment: '',
@@ -29,28 +20,29 @@ export class AppState extends Model<IAppState> {
 
     formErrors: TFormErrors = {};
 
+    
+
     // Каталог товаров
-    setCatalog(items: IProduct[]) {
-		this.catalog = items.map((item) => new Product(item, this.events));
+	setCatalog(items: IProduct[]) {
+		this.catalog = items;
 		this.emitChanges('items:changed', { catalog: this.catalog });
 	}
 
     // Товар для предпросмотра
-    setPreview(item: Product): void {
-        this.preview = item.id;
+    setPreview(item: IProduct): void {
+       
         this.emitChanges('preview:changed', item);
     }
 
-
    // Добавить товар в корзину
-	addProduct(item: Product): void {
+	addProduct(item: IProduct): void {
 		this.basket.push(item);
 		this.order.items.push(item.id);
 		this.emitChanges('basket:change', this.basket);
 	}
 
 	// Удалить товар из корзины
-	deleteProduct(item: Product): void {
+	deleteProduct(item: IProduct): void {
 		const index = this.basket.indexOf(item);
 		if (index !== -1) {
 			this.basket.splice(index, 1);
@@ -62,8 +54,8 @@ export class AppState extends Model<IAppState> {
     clearBasket() {
 		this.basket = [];
 		this.order.items = [];
+        this.emitChanges('basket:change');
 	}
-
 
     // Получить общую стоимость заказа
 	getTotal(): number {

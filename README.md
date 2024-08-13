@@ -114,11 +114,8 @@ interface IOrderResult {
 ```
 type TCategoryType = 'другое' | 'софт-скил' | 'дополнительное' | 'кнопка'| 'хард-скил';
 ```
-- Данные карточки товара, выводимые на главной странице сайта :
 
-```
-type TProductMainPage = Pick<IProduct, 'category' | 'id' | 'image' | 'price' | 'title'>;
-```
+
 - Данные карточки товара, используемые при добавлении товара в корзину:
 
 ```
@@ -217,7 +214,7 @@ type TFormErrors = Partial<Record<keyof IOrder, string>>;
 - setOrderField(field: keyof IOrderForm, value: string) - устанавливает значение в поле заказа и проверяет его;
 - validateOrder() - проверяет значение полей в форме доставки;
 - setContactField(field: keyof IContactForm, value: string) - устанавливает значение в поле контактов;
-validateContacts() - проверяет значение полей в форме контактов;
+- validateContacts() - проверяет значение полей в форме контактов;
 - getTotal(): number - возвращает общую сумму заказов;
 - resetOrder() - очищает данные заказа.
 
@@ -268,9 +265,8 @@ constructor(container: HTMLElement, events: IEvents) - Конструктор п
 - `set/get category` - управляет категорией и ее цветом;
 - `set price` - управляет ценой товара;
 - `set index` - управляет индексом товара;
-- `set buttonName` - устанавливает текст кнопки;
+- `set buttonTitle` - устанавливает текст кнопки;
 - `disablePriceButton ()` - проверяет цену и делает кнопку покупки неактивной если цена не указана;
-- ` set buttonTitle` - управляет текстом кнопки.
 
 
 ### 3. Класс Form

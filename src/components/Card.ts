@@ -1,7 +1,6 @@
 import { IProduct } from '../types';
-import { ensureElement } from '../utils/utils';
+import { bem, ensureElement } from '../utils/utils';
 import { Component } from './base/Component';
-import { settings } from '../utils/constants';
 
 export interface ICardActions {
 	onClick: (event: MouseEvent) => void;
@@ -23,14 +22,16 @@ export class Card extends Component<ICard> {
 	protected _button?: HTMLButtonElement;
 
 	constructor(
-		protected blockName: string, container: HTMLElement, actions?: ICardActions) {
+		protected blockName: string,
+		container: HTMLElement,
+		actions?: ICardActions
+	) {
 		super(container);
 
 		this._title = ensureElement<HTMLElement>(`.${blockName}__title`, container);
 		this._image = container.querySelector('.card__image');
-		this._description = container.querySelector<HTMLElement>(`.${blockName}__text`
-		);
-    this._category = container.querySelector('.card__category');
+		this._description = container.querySelector<HTMLElement>(`.${blockName}__text`);
+        this._category = container.querySelector(`.${blockName}__category`);
 		this._price = ensureElement<HTMLElement>(`.${blockName}__price`, container);
 		this._index = container.querySelector<HTMLElement>(`.basket__item-index`);
 		this._button = container.querySelector('.card__button');
@@ -70,8 +71,24 @@ export class Card extends Component<ICard> {
 
 	set category(value: string) {
 		this.setText(this._category, value);
-		this.toggleClass(this._category, 'card__category_soft', false);
-		this.toggleClass(this._category, settings.categoryClassNames[value], true);
+		this._category.className = this._category.className.split(' ')[0]
+		switch (value) {
+			case 'другое':
+				this._category.classList.add(bem(this.blockName, 'category', 'other').name);
+				break;
+			case 'софт-скил':
+				this._category.classList.add(bem(this.blockName, 'category', 'soft').name);
+				break;
+			case 'хард-скил':
+				this._category.classList.add(bem(this.blockName, 'category', 'hard').name);
+				break;
+			case 'дополнительное':
+				this._category.classList.add(bem(this.blockName, 'category', 'additional').name);
+				break;
+			case 'кнопка':
+				this._category.classList.add(bem(this.blockName, 'category', 'button').name);
+				break;
+		}
 	}
 
     get category(): string {
